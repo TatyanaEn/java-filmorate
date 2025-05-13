@@ -2,19 +2,18 @@ package ru.yandex.practicum.filmorate.model;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.time.LocalDate;
 
-/**
- * Film.
- */
-
 @Data
+@EqualsAndHashCode(of = {"email"})
 @Builder
-public class Film {
+public class User {
     Long id;
+    String login;
+    String email;
     String name;
-    String description;
-    LocalDate releaseDate;
-    Integer duration;
+    LocalDate birthday;
 }
+
