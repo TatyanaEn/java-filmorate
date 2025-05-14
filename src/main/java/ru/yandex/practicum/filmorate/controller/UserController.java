@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +26,7 @@ public class UserController {
     }
 
     @PostMapping
-    public User create(@Valid @RequestBody User user) {
+    public User create(@RequestBody User user) {
         // проверяем выполнение необходимых условий
         if (user.getEmail() == null || user.getEmail().isBlank()) {
             throw new ConditionsNotMetException("Имейл должен быть указан", log);
@@ -69,7 +68,7 @@ public class UserController {
     }
 
     @PutMapping
-    public User update(@Valid @RequestBody User newUser) {
+    public User update(@RequestBody User newUser) {
         // проверяем необходимые условия
         if (newUser.getId() == null) {
             throw new ConditionsNotMetException("Id должен быть указан", log);
