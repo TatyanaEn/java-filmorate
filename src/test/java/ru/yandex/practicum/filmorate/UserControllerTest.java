@@ -7,6 +7,7 @@ import ru.yandex.practicum.filmorate.controller.UserController;
 import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 
 import java.time.LocalDate;
 
@@ -17,9 +18,13 @@ public class UserControllerTest {
     private User user;
     private UserController userController;
 
+    private InMemoryUserStorage inMemoryUserStorage;
+
     @BeforeEach
     public void beforeEach() {
-        userController = new UserController();
+
+        inMemoryUserStorage = new InMemoryUserStorage();
+        userController = new UserController(inMemoryUserStorage);
         user = User.builder()
                 .name("MyName")
                 .login("MaxPower")

@@ -6,6 +6,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 
 import java.time.LocalDate;
 
@@ -17,11 +19,16 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class FilmControllerTest {
     private Film film;
     private FilmController filmController;
+    private InMemoryFilmStorage inMemoryFilmStorage;
+
+    private InMemoryUserStorage InMemoryUserStorage;
+
 
     @BeforeEach
     public void beforeEach() {
 
-        filmController = new FilmController();
+        inMemoryFilmStorage = new InMemoryFilmStorage();
+        filmController = new FilmController(inMemoryFilmStorage, InMemoryUserStorage);
         film = Film.builder()
                 .name("Операция «Ы» и другие приключения Шурика")
                 .description("Похождения хронически оптимистичного очкарика.")
