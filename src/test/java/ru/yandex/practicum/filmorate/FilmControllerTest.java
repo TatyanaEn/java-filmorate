@@ -21,14 +21,14 @@ public class FilmControllerTest {
     private FilmController filmController;
     private InMemoryFilmStorage inMemoryFilmStorage;
 
-    private InMemoryUserStorage InMemoryUserStorage;
+    private InMemoryUserStorage inMemoryUserStorage;
 
 
     @BeforeEach
     public void beforeEach() {
 
         inMemoryFilmStorage = new InMemoryFilmStorage();
-        filmController = new FilmController(inMemoryFilmStorage, InMemoryUserStorage);
+        filmController = new FilmController(inMemoryFilmStorage, inMemoryUserStorage);
         film = Film.builder()
                 .name("Операция «Ы» и другие приключения Шурика")
                 .description("Похождения хронически оптимистичного очкарика.")
