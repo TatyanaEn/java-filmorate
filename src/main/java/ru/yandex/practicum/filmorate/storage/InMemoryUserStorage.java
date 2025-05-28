@@ -6,7 +6,7 @@ import ru.yandex.practicum.filmorate.model.User;
 import java.util.*;
 
 @Component
-public class InMemoryUserStorage implements UserStorage{
+public class InMemoryUserStorage implements UserStorage {
 
     private final Map<Long, User> users;
 
@@ -15,7 +15,7 @@ public class InMemoryUserStorage implements UserStorage{
     }
 
     @Override
-    public Collection<User> findAll(){
+    public Collection<User> findAll() {
         return users.values().stream()
                 .map(user -> User.builder()
                         .id(user.getId())
@@ -37,7 +37,7 @@ public class InMemoryUserStorage implements UserStorage{
     }
 
     @Override
-    public Long updateUser(User newUser){
+    public Long updateUser(User newUser) {
         User oldUser = users.get(newUser.getId());
         if (!(newUser.getEmail() == null || newUser.getEmail().isBlank()))
             oldUser.setEmail(newUser.getEmail());
@@ -54,12 +54,12 @@ public class InMemoryUserStorage implements UserStorage{
     }
 
     @Override
-    public Boolean containsId(Long userId){
+    public Boolean containsId(Long userId) {
         return users.containsKey(userId);
     }
 
     @Override
-    public User getUserById(Long userId){
+    public User getUserById(Long userId) {
         User userFS = users.get(userId);
         if (userFS == null)
             return null;
@@ -74,7 +74,7 @@ public class InMemoryUserStorage implements UserStorage{
     }
 
     @Override
-    public ArrayList<User> getFriendsList(Long userId){
+    public ArrayList<User> getFriendsList(Long userId) {
         ArrayList<User> friendsList = new ArrayList<>();
 
         if (users.get(userId).getFriends() != null) {
@@ -86,7 +86,7 @@ public class InMemoryUserStorage implements UserStorage{
     }
 
     @Override
-    public void setFriendsList(Long userId, ArrayList<User> friendsList){
+    public void setFriendsList(Long userId, ArrayList<User> friendsList) {
         Set<Long> friendsIdList = new HashSet<>();
         if (friendsList != null) {
             for (User friend : friendsList) {
