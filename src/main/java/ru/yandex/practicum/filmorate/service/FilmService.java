@@ -5,7 +5,6 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.Set;
 
 @Service
@@ -32,14 +31,5 @@ public class FilmService {
 
     public Collection<Film> getTopFilms(Integer count) {
         return filmStorage.findAll().stream().sorted(new FilmComparatorByLikes()).limit(count).toList();
-    }
-
-}
-
-class FilmComparatorByLikes implements Comparator<Film> {
-
-    public int compare(Film a, Film b) {
-
-        return ((b.getLikes() == null ? 0 : b.getLikes().size()) - (a.getLikes() == null ? 0 : a.getLikes().size()));
     }
 }
