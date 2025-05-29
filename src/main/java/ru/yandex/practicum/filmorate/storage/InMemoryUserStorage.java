@@ -30,10 +30,17 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public Long createUser(User user) {
-        user.setId(getNextId());
-        users.put(user.getId(), user);
+        User newUser = User.builder()
+                .id(getNextId())
+                .name(user.getName())
+                .login(user.getLogin())
+                .email(user.getEmail())
+                .birthday(user.getBirthday())
+                .friends(user.getFriends())
+                .build();
+        users.put(newUser.getId(), newUser);
 
-        return user.getId();
+        return newUser.getId();
     }
 
     @Override

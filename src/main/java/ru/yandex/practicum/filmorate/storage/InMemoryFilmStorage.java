@@ -31,10 +31,17 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Long createFilm(Film film) {
-        film.setId(getNextId());
-        films.put(film.getId(), film);
+        Film newFilm = Film.builder()
+                .id(getNextId())
+                .name(film.getName())
+                .releaseDate(film.getReleaseDate())
+                .description(film.getDescription())
+                .duration(film.getDuration())
+                .likes(film.getLikes())
+                .build();
+        films.put(newFilm.getId(), newFilm);
 
-        return film.getId();
+        return newFilm.getId();
     }
 
     @Override
