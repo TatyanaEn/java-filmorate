@@ -38,29 +38,16 @@ FROM
  limit n
 ```
 
-4. Cписок общих друзей
-
-```
-select
-	f1.user_id_1, f1.user_id_2, u1.login, u1.name,  u2.login, u2.name
-from friends f1
-	inner join friends f2 on f1.user_id_1 = f2.user_id_2 and f1.user_id_2 = f2.user_id_1
-	inner outer users u1 on u1.id = f1.user_id_1
-	inner outer users u2 on u2.id = f1.user_id_2
-where f1.user_id_1 =1 and f2.user_id_2 =2
-```
-
-5. Второй вариант получения списка общих друзей
+4. Получение списка общих друзей
 ```
 select  
-	F1.user_id_1, F1.user_id_2, u1.login, u1.name,  u2.login, u2.name
+	F1.user_id_2, u1.login, u1.name
 from
 	(select user_id_1, user_id_2
 	from friends  where user_id_1 = 1) F1,
 inner join 
 	(select user_id_1, user_id_2
-	from friends  where user_id_1 = 2) F2 on F1.user_id_1 = f2.user_id_2 and F1.user_id_2 = F2.user_id_1
-inner outer users u1 on u1.id = f1.user_id_1
-inner outer users u2 on u2.id = f1.user_id_2
+	from friends  where user_id_1 = 2) F2 on F1.user_id_2 = f2.user_id_2
+inner outer users u1 on u1.id = f1.user_id_2
 ```
 
