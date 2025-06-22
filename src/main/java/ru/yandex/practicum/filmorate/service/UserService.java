@@ -4,16 +4,19 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dto.NewUserRequest;
+import ru.yandex.practicum.filmorate.dto.UpdateUserRequest;
+import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
-import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -24,136 +27,142 @@ public class UserService {
     private final UserStorage userStorage;
 
 
-    public Collection<User> findAll() {
-        return userStorage.findAll();
+    public List<UserDto> findAll() {
+        return userStorage.findAll()
+                .stream()
+                .map(UserMapper::mapToUserDto)
+                .collect(Collectors.toList());
+
     }
 
-    public User getUserById(Long userId) {
-        if (userStorage.containsId(userId)) {
-            return userStorage.getUserById(userId);
-        }
-        throw new NotFoundException("Пользователь с id = " + userId + " не найден", log);
+
+    public UserDto getUserById(Long userId) {
+        return userStorage.getUserById(userId)
+                .map(UserMapper::mapToUserDto)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден с ID: " + userId, log));
     }
 
-    public User createUser(User user) {
+    public UserDto createUser(NewUserRequest request) {
 
         // проверяем выполнение необходимых условий
-        if (user.getEmail() == null || user.getEmail().isBlank()) {
+        if (request.getEmail() == null || request.getEmail().isBlank()) {
             throw new ConditionsNotMetException("Имейл должен быть указан", log);
         }
-        if (!user.getEmail().contains("@")) {
+        if (!request.getEmail().contains("@")) {
             throw new ValidationException("Электронная почта должна содержать символ @", log);
         }
-        for (User item : findAll()) {
-            if (item.getEmail().equals(user.getEmail()))
+        /*for (UserDto item : findAll()) {
+            if (item.getEmail().equals(request.getEmail()))
                 throw new DuplicatedDataException("Этот имейл уже используется", log);
 
-        }
-        if (user.getLogin() == null || user.getLogin().isBlank())
+        }*/
+        if (request.getLogin() == null || request.getLogin().isBlank())
             throw new ValidationException("Логин не может быть пустым", log);
-        if (user.getLogin().contains(" ")) {
+        if (request.getLogin().contains(" ")) {
             throw new ValidationException("Логин не может содержать пробелы!", log);
         }
-        if (user.getBirthday().isAfter(LocalDate.now())) {
+        if (request.getBirthday().isAfter(LocalDate.now())) {
             throw new ValidationException("Дата рождения не может быть в будущем!", log);
         }
 
-        if (user.getName() == null || user.getName().isBlank())
-            user.setName(user.getLogin());
+        if (request.getName() == null || request.getName().isBlank())
+            request.setName(request.getLogin());
 
-        Long newId = userStorage.createUser(user);
-        user.setId(newId);
+        User user = UserMapper.mapToUser(request);
 
-        return user;
+        Long userId = userStorage.createUser(user);
+
+        return UserMapper.mapToUserDto(userStorage.getUserById(userId).get());
+
     }
 
-
-    public User updateUser(User user) {
-
-        // проверяем необходимые условия
-        if (user.getId() == null) {
-            throw new ConditionsNotMetException("Id должен быть указан", log);
+    public UserDto updateUser(UpdateUserRequest request) {
+        if (request.getEmail() == null || request.getEmail().isBlank()) {
+            throw new ConditionsNotMetException("Имейл должен быть указан", log);
         }
-        if (userStorage.containsId(user.getId())) {
-            if (user.getEmail() == null || user.getEmail().isBlank()) {
-                throw new ConditionsNotMetException("Имейл должен быть указан", log);
-            }
-            if (!user.getEmail().contains("@")) {
-                throw new ValidationException("Электронная почта должна содержать символ @", log);
-            }
-            for (User item : userStorage.findAll()) {
-                if (item.getEmail().equals(user.getEmail()))
-                    throw new DuplicatedDataException("Этот имейл уже используется", log);
-
-            }
-            if (user.getLogin() == null || user.getLogin().isBlank())
-                throw new ValidationException("Логин не может быть пустым", log);
-            if (user.getLogin().contains(" ")) {
-                throw new ValidationException("Логин не может содержать пробелы!", log);
-            }
-            if (user.getBirthday().isAfter(LocalDate.now())) {
-                throw new ValidationException("Дата рождения не может быть в будущем!", log);
-            }
-
-            Long userId = userStorage.updateUser(user);
-            User newUser = userStorage.getUserById(userId);
-
-            log.info("Обновлен пользователь {}", newUser);
-
-            return newUser;
+        if (!request.getEmail().contains("@")) {
+            throw new ValidationException("Электронная почта должна содержать символ @", log);
         }
-        throw new NotFoundException("Пользователь с id = " + user.getId() + " не найден", log);
+        if (request.getLogin() == null || request.getLogin().isBlank())
+            throw new ValidationException("Логин не может быть пустым", log);
+        if (request.getLogin().contains(" ")) {
+            throw new ValidationException("Логин не может содержать пробелы!", log);
+        }
+        if (request.getBirthday().isAfter(LocalDate.now())) {
+            throw new ValidationException("Дата рождения не может быть в будущем!", log);
+        }
+        /*for (User item : userStorage.findAll()) {
+            if (item.getEmail().equals(request.getEmail()))
+                throw new DuplicatedDataException("Этот имейл уже используется", log);
+
+        }*/
+        User updatedUser = userStorage.getUserById(request.getId())
+                .map(user -> UserMapper.updateUserFields(user, request))
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден", log));
+        if (updatedUser != null) {
+            long updatedUserId = userStorage.updateUser(updatedUser);
+            return UserMapper.mapToUserDto(userStorage.getUserById(updatedUserId).get());
+        } else
+            return null;
     }
 
-    public ArrayList<User> getFriendsList(Long userId) {
-        if (!userStorage.containsId(userId))
+    public List<UserDto> getFriendsList(Long userId) {
+        if (userStorage.getUserById(userId).isEmpty())
             throw new NotFoundException("Пользователь с id = " + userId + " не найден", log);
-        return userStorage.getFriendsList(userId);
+        return userStorage.getFriendsList(userId).stream()
+                .map(UserMapper::mapToUserDto)
+                .collect(Collectors.toList());
     }
 
 
-    public User addToFriends(Long userId, Long friendId) {
-        if (!userStorage.containsId(userId))
+    public UserDto addToFriends(Long userId, Long friendId) {
+        if (userStorage.getUserById(userId).isEmpty())
             throw new NotFoundException("Пользователь с id = " + userId + " не найден", log);
-        if (!userStorage.containsId(friendId))
+        if (userStorage.getUserById(friendId).isEmpty())
             throw new NotFoundException("Пользователь с id = " + friendId + " не найден", log);
+        boolean isFriend = false;
+        for (User friend : userStorage.getFriendsList(userId)) {
+            if (friend.getId().equals(friendId)) {
+                isFriend = true;
+                break;
+            }
+        }
+        if (!isFriend) {
+            List<User> friendsList = (List<User>) userStorage.getFriendsList(userId);
+            friendsList.add(userStorage.getUserById(friendId).get());
+            userStorage.setFriendsList(userId, friendsList);
 
-        ArrayList<User> friendsList = userStorage.getFriendsList(userId);
-        friendsList.add(userStorage.getUserById(friendId));
-        userStorage.setFriendsList(userId, friendsList);
-
-        friendsList = userStorage.getFriendsList(friendId);
-        friendsList.add(userStorage.getUserById(userId));
-        userStorage.setFriendsList(friendId, friendsList);
-        return userStorage.getUserById(friendId);
+            return UserMapper.mapToUserDto(userStorage.getUserById(friendId).get());
+        } else
+            return null;
     }
 
     public void deleteFromFriends(Long userId, Long friendId) {
-        if (!userStorage.containsId(userId))
+        if (userStorage.getUserById(userId).isEmpty())
             throw new NotFoundException("Пользователь с id = " + userId + " не найден", log);
-        if (!userStorage.containsId(friendId))
+        if (userStorage.getUserById(friendId).isEmpty())
             throw new NotFoundException("Пользователь с id = " + friendId + " не найден", log);
 
-        ArrayList<User> friendsList = userStorage.getFriendsList(userId);
-        friendsList.remove(userStorage.getUserById(friendId));
+        List<User> friendsList = (List<User>) userStorage.getFriendsList(userId);
+        friendsList.remove(userStorage.getUserById(friendId).get());
         userStorage.setFriendsList(userId, friendsList);
 
-        friendsList = userStorage.getFriendsList(friendId);
-        friendsList.remove(userStorage.getUserById(userId));
-        userStorage.setFriendsList(friendId, friendsList);
     }
 
-    public ArrayList<User> getCommonFriendsList(Long userId, Long friendId) {
-        if (!userStorage.containsId(userId))
+    public List<UserDto> getCommonFriendsList(Long userId, Long friendId) {
+        if (userStorage.getUserById(userId).isEmpty())
             throw new NotFoundException("Пользователь с id = " + userId + " не найден", log);
-        if (!userStorage.containsId(friendId))
+        if (userStorage.getUserById(friendId).isEmpty())
             throw new NotFoundException("Пользователь с id = " + friendId + " не найден", log);
 
-        ArrayList<User> friendsList1 = userStorage.getFriendsList(userId);
-        ArrayList<User> friendsList2 = userStorage.getFriendsList(friendId);
+        List<User> friendsList1 = (List<User>) userStorage.getFriendsList(userId);
+        List<User> friendsList2 = (List<User>) userStorage.getFriendsList(friendId);
 
         friendsList1.retainAll(friendsList2);
-        return friendsList1;
+
+        return friendsList1.stream()
+                .map(UserMapper::mapToUserDto)
+                .collect(Collectors.toList());
     }
 
 }
