@@ -1,11 +1,13 @@
 package ru.yandex.practicum.filmorate.storage;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.*;
 
 @Component
+@Qualifier("InMemoryUserStorage")
 public class InMemoryUserStorage implements UserStorage {
 
     private final Map<Long, User> users;
@@ -60,24 +62,20 @@ public class InMemoryUserStorage implements UserStorage {
         return oldUser.getId();
     }
 
-    @Override
-    public Boolean containsId(Long userId) {
-        return users.containsKey(userId);
-    }
 
     @Override
-    public User getUserById(Long userId) {
+    public Optional<User> getUserById(Long userId) {
         User userFS = users.get(userId);
         if (userFS == null)
-            return null;
-        return User.builder()
+            return Optional.empty();
+        return Optional.ofNullable(User.builder()
                 .id(userId)
                 .name(userFS.getName())
                 .login(userFS.getLogin())
                 .email(userFS.getEmail())
                 .birthday(userFS.getBirthday())
                 .friends(userFS.getFriends())
-                .build();
+                .build());
     }
 
     @Override
@@ -93,7 +91,7 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public void setFriendsList(Long userId, ArrayList<User> friendsList) {
+    public void setFriendsList(Long userId, List<User> friendsList) {
         Set<Long> friendsIdList = new HashSet<>();
         if (friendsList != null) {
             for (User friend : friendsList) {

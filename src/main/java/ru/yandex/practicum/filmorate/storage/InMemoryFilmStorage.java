@@ -2,6 +2,8 @@ package ru.yandex.practicum.filmorate.storage;
 
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.MPA;
 
 import java.util.*;
 
@@ -10,8 +12,14 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     private final Map<Long, Film> films;
 
+    private final Map<Long, Genre> genres;
+
+    private final Map<Long, MPA> mpa;
+
     public InMemoryFilmStorage() {
         this.films = new HashMap<>();
+        this.genres = new HashMap<>();
+        this.mpa = new HashMap<>();
     }
 
     @Override
@@ -55,22 +63,20 @@ public class InMemoryFilmStorage implements FilmStorage {
         return oldFilm.getId();
     }
 
-    @Override
-    public Boolean containsId(Long filmId) {
-        return films.containsKey(filmId);
-    }
 
     @Override
-    public Film getFilmById(Long filmId) {
+    public Optional<Film> getFilmById(Long filmId) {
         Film filmFS = films.get(filmId);
-        return Film.builder()
+        if (filmFS == null)
+            return Optional.empty();
+        return Optional.ofNullable(Film.builder()
                 .id(filmFS.getId())
                 .name(filmFS.getName())
                 .releaseDate(filmFS.getReleaseDate())
                 .description(filmFS.getDescription())
                 .duration(filmFS.getDuration())
                 .likes(filmFS.getLikes())
-                .build();
+                .build());
     }
 
     @Override
@@ -87,6 +93,16 @@ public class InMemoryFilmStorage implements FilmStorage {
             films.get(filmId).setLikes(likesList);
     }
 
+    @Override
+    public List<Genre> findAllGenre() {
+        return genres.values().stream()
+                .map(genre -> Genre.builder()
+                        .id(genre.getId())
+                        .name(genre.getName())
+                        .build())
+                .toList();
+    }
+
 
     // вспомогательный метод для генерации идентификатора нового поста
     private long getNextId() {
@@ -98,5 +114,37 @@ public class InMemoryFilmStorage implements FilmStorage {
         return ++currentMaxId;
     }
 
+    @Override
+    public Optional<Genre> getGenreById(Long genreId) {
+        Genre genreFS = genres.get(genreId);
+        if (genreFS == null)
+            return Optional.empty();
+        return Optional.ofNullable(Genre.builder()
+                .id(genreFS.getId())
+                .name(genreFS.getName())
+                .build());
+    }
+
+    @Override
+    public List<MPA> findAllMpa() {
+        return mpa.values().stream()
+                .map(mpa -> MPA.builder()
+                        .id(mpa.getId())
+                        .name(mpa.getName())
+                        .build())
+                .toList();
+    }
+
+    @Override
+    public Optional<MPA> getMpaById(Long mpaId) {
+        MPA mpaFS = mpa.get(mpaId);
+        if (mpaFS == null)
+            return Optional.empty();
+        return Optional.ofNullable(MPA.builder()
+                .id(mpaFS.getId())
+                .name(mpaFS.getName())
+                .name(mpaFS.getName())
+                .build());
+    }
 
 }
